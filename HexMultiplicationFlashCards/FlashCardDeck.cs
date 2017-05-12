@@ -13,7 +13,8 @@ namespace HexMultiplicationFlashCards
         //REFACTOR: change all Console.WriteLine calls to just return strings
 
         //properties
-        //TODO: make private
+        private int minMultiplier { get; set; }
+        private int minMultiplicand { get; set; }
         private int maxMultiplier { get; set; }
         private int maxMultiplicand { get; set; }
         private Stack<FlashCard> unansweredCards { get; set; }
@@ -21,17 +22,19 @@ namespace HexMultiplicationFlashCards
         private Stack<FlashCard> rightCards { get; set; }
         private IList<FlashCard> cards { get; set; }
 
-        public  bool CardsAvailable
+        public bool CardsAvailable
         {
             get { return (unansweredCards.Count > 0); }
         }
 
         //public functions
-        public FlashCardDeck(int maxMultiplier, int maxMultiplicand)
+        public FlashCardDeck(int minMultiplier, int minMultiplicand, int maxMultiplier, int maxMultiplicand)
         {
             //set properties
-            this.maxMultiplicand = maxMultiplicand;
+            this.minMultiplier = minMultiplier;
+            this.minMultiplicand = minMultiplicand;
             this.maxMultiplier = maxMultiplier;
+            this.maxMultiplicand = maxMultiplicand;
 
             cards = new List<FlashCard>();
             unansweredCards = new Stack<FlashCard>();
@@ -39,17 +42,21 @@ namespace HexMultiplicationFlashCards
             rightCards = new Stack<FlashCard>();
 
             //populate card list
-            for (int multiplier = 0; multiplier <= maxMultiplier; multiplier++)
+            for (int multiplier = minMultiplier; multiplier <= maxMultiplier; multiplier++)
             {
-                for (int multiplicand = 0; multiplicand <= maxMultiplicand; multiplicand++)
+                for (int multiplicand = minMultiplicand; multiplicand <= maxMultiplicand; multiplicand++)
                 {
                     cards.Add(new FlashCard(multiplier, multiplicand));
                 }
             }
 
             //transfer whole list to unanswered stack
-            foreach (FlashCard fc in cards) //PERFECTION: use LINQ
+            foreach (FlashCard fc in cards) 
             {
+                //SIDENOTE: I was originally going to try and use LINQ instead of a foreach loop,
+                //but this MSDN article
+                // https://blogs.msdn.microsoft.com/ericlippert/2009/05/18/foreach-vs-foreach/
+                //convinced me it was a bad idea
                 unansweredCards.Push(fc);
             }
         }
@@ -86,7 +93,7 @@ namespace HexMultiplicationFlashCards
                 }
             }
         }
-        public static int ParseIntValue(int defaultValue)
+        public static int ParseIntValue(int defaultValue) //TODO: move this out of this class
         {
             //containers
             int value;
@@ -186,9 +193,8 @@ namespace HexMultiplicationFlashCards
             Console.WriteLine("This program repeatedly asks multication problems.");
             Console.WriteLine($"Type your answer in hex format, and then push 'Enter'.");
             Console.WriteLine();
-            Console.WriteLine("NOTES");
+            Console.WriteLine("HINT");
             Console.WriteLine($"Type '{answerSig}' and then push 'Enter' to display the answer without attempting a guess.");
-            Console.WriteLine("The numbers in (parentheses) on the right are the decimal equivalent of the hex numbers on the left.");
         }
 
     }
