@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HexMultiplicationFlashCards
 {
@@ -28,7 +29,7 @@ namespace HexMultiplicationFlashCards
         }
 
         //public functions
-        public FlashCardDeck(int minMultiplier, int minMultiplicand, int maxMultiplier, int maxMultiplicand)
+        public FlashCardDeck(int minMultiplier, int minMultiplicand, int maxMultiplier, int maxMultiplicand, int roundId)
         {
             //set properties
             this.minMultiplier = minMultiplier;
@@ -51,7 +52,7 @@ namespace HexMultiplicationFlashCards
             }
 
             //transfer whole list to unanswered stack
-            foreach (FlashCard fc in cards) 
+            foreach (FlashCard fc in cards)
             {
                 //SIDENOTE: I was originally going to try and use LINQ instead of a foreach loop,
                 //but this MSDN article
@@ -59,6 +60,32 @@ namespace HexMultiplicationFlashCards
                 //convinced me it was a bad idea
                 unansweredCards.Push(fc);
             }
+
+            //create cards and quesitons in DB
+            using (var db = new DAL.FlashCardEntities())
+            {
+                var round = db.Round.Single(r => r.Id == roundId);
+                foreach (var flashCard in cards)
+                {
+                    //PERFECTION: handle concurrency if two users are adding the same cards at the same time
+                    var dbFlashCard = db.FlashCard
+                        .SingleOrDefault(fc => fc.Multiplicand == flashCard.multiplicand && fc.Multiplier == flashCard.multiplier);
+
+                    if (dbFlashCard == null)
+                    {
+                        dbFlashCard = AutoMapper.Mapper.Map<FlashCard, DAL.FlashCard>(flashCard);
+                        db.FlashCard.Add(dbFlashCard);
+                    }
+                    round.Question.Add(new DAL.Question() { FlashCard = dbFlashCard });
+
+                    db.SaveChanges();
+                }
+            }
+        
+
+
+
+
         }
         public void AskQuestions()
         {
