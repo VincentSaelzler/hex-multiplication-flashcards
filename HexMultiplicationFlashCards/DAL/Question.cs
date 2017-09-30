@@ -15,11 +15,12 @@ namespace HexMultiplicationFlashCards.DAL
     public partial class Question
     {
         public int Id { get; set; }
-        public int Response { get; set; }
+        public int Product { get; set; }
         public int RoundId { get; set; }
-        public int FlashCardId { get; set; }
+        public int Multiplier { get; set; }
+        public int Multiplicand { get; set; }
+        public Nullable<int> Response { get; set; }
     
-        public virtual FlashCard FlashCard { get; set; }
         public virtual Round Round { get; set; }
     }
 }

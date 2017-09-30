@@ -65,21 +65,21 @@ namespace HexMultiplicationFlashCards
             using (var db = new DAL.FlashCardEntities())
             {
                 var round = db.Round.Single(r => r.Id == roundId);
-                foreach (var flashCard in cards)
-                {
-                    //PERFECTION: handle concurrency if two users are adding the same cards at the same time
-                    var dbFlashCard = db.FlashCard
-                        .SingleOrDefault(fc => fc.Multiplicand == flashCard.multiplicand && fc.Multiplier == flashCard.multiplier);
+                //foreach (var flashCard in cards)
+                //{
+                //    //PERFECTION: handle concurrency if two users are adding the same cards at the same time
+                //    var dbFlashCard = db.FlashCard
+                //        .SingleOrDefault(fc => fc.Multiplicand == flashCard.multiplicand && fc.Multiplier == flashCard.multiplier);
 
-                    if (dbFlashCard == null)
-                    {
-                        dbFlashCard = AutoMapper.Mapper.Map<FlashCard, DAL.FlashCard>(flashCard);
-                        db.FlashCard.Add(dbFlashCard);
-                    }
-                    round.Question.Add(new DAL.Question() { FlashCard = dbFlashCard });
+                //    if (dbFlashCard == null)
+                //    {
+                //        dbFlashCard = AutoMapper.Mapper.Map<FlashCard, DAL.FlashCard>(flashCard);
+                //        db.FlashCard.Add(dbFlashCard);
+                //    }
+                //    round.Question.Add(new DAL.Question() { FlashCard = dbFlashCard });
 
-                    db.SaveChanges();
-                }
+                //    db.SaveChanges();
+                //}
             }
         
 
@@ -188,12 +188,12 @@ namespace HexMultiplicationFlashCards
         {
             //get next card
             FlashCard flashCard = unansweredCards.Peek();
-            Console.WriteLine($"{flashCard.multiplier.ToString(hexFormat)} * {flashCard.multiplicand.ToString(hexFormat)} ?");
+            Console.WriteLine($"{flashCard.Multiplier.ToString(hexFormat)} * {flashCard.Multiplicand.ToString(hexFormat)} ?");
         }
         private void CheckAnswer(int guess)
         {
             FlashCard flashCard = unansweredCards.Pop();
-            if (guess == flashCard.product)
+            if (guess == flashCard.Product)
             {
                 Console.WriteLine($"Correct");
                 rightCards.Push(flashCard);
@@ -201,14 +201,14 @@ namespace HexMultiplicationFlashCards
             else
             {
                 Console.WriteLine("Wrong");
-                Console.WriteLine($"Correct Answer: {flashCard.product.ToString(hexFormat)}");
+                Console.WriteLine($"Correct Answer: {flashCard.Product.ToString(hexFormat)}");
                 wrongCards.Push(flashCard);
             }
         }
         private void ShowAnswer()
         {
             FlashCard flashCard = unansweredCards.Pop();
-            Console.WriteLine($"Correct Answer: {flashCard.product.ToString(hexFormat)}");
+            Console.WriteLine($"Correct Answer: {flashCard.Product.ToString(hexFormat)}");
             wrongCards.Push(flashCard);
         }
 

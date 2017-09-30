@@ -25,7 +25,6 @@ namespace HexMultiplicationFlashCards.DAL
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<FlashCard> FlashCard { get; set; }
         public virtual DbSet<Question> Question { get; set; }
         public virtual DbSet<Quiz> Quiz { get; set; }
         public virtual DbSet<Round> Round { get; set; }

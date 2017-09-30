@@ -4,13 +4,11 @@
   <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
     <!-- Diagram content (shape and connector positions) -->
     <edmx:Diagrams>
-      <Diagram DiagramId="6591a46a017741b5b955eeacf17ab717" Name="Diagram1">
-        <EntityTypeShape EntityType="FlashCardModel.FlashCard" Width="1.5" PointX="5.25" PointY="5.125" IsExpanded="true" />
+      <Diagram DiagramId="7332ecc0815e4108b49b18e245d017bc" Name="Diagram1">
         <EntityTypeShape EntityType="FlashCardModel.Question" Width="1.5" PointX="7.5" PointY="0.875" IsExpanded="true" />
         <EntityTypeShape EntityType="FlashCardModel.Quiz" Width="1.5" PointX="3" PointY="0.875" IsExpanded="true" />
         <EntityTypeShape EntityType="FlashCardModel.Round" Width="1.5" PointX="5.25" PointY="1" IsExpanded="true" />
         <EntityTypeShape EntityType="FlashCardModel.Student" Width="1.5" PointX="0.75" PointY="1.25" IsExpanded="true" />
-        <AssociationConnector Association="FlashCardModel.FK_Question_FlashCard" ManuallyRouted="false" />
         <AssociationConnector Association="FlashCardModel.FK_Question_Round" ManuallyRouted="false" />
         <AssociationConnector Association="FlashCardModel.FK_Quiz_Person" ManuallyRouted="false" />
         <AssociationConnector Association="FlashCardModel.FK_Round_Quiz" ManuallyRouted="false" />

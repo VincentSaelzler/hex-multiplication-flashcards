@@ -4,23 +4,17 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="FlashCardModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
-        <EntityType Name="FlashCard">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="Multiplier" Type="int" Nullable="false" />
-          <Property Name="Multiplicand" Type="int" Nullable="false" />
-        </EntityType>
+    <Schema Namespace="FlashCardModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="Question">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
-          <Property Name="Response" Type="int" Nullable="false" />
+          <Property Name="Product" Type="int" Nullable="false" />
           <Property Name="RoundId" Type="int" Nullable="false" />
-          <Property Name="FlashCardId" Type="int" Nullable="false" />
+          <Property Name="Multiplier" Type="int" Nullable="false" />
+          <Property Name="Multiplicand" Type="int" Nullable="false" />
+          <Property Name="Response" Type="int" />
         </EntityType>
         <EntityType Name="Quiz">
           <Key>
@@ -28,7 +22,7 @@
           </Key>
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Started" Type="datetime2" Precision="7" Nullable="false" />
-          <Property Name="Finished" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="Finished" Type="datetime2" Precision="7" />
           <Property Name="PersonId" Type="int" Nullable="false" />
         </EntityType>
         <EntityType Name="Round">
@@ -46,18 +40,6 @@
           <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Name" Type="nvarchar" MaxLength="255" Nullable="false" />
         </EntityType>
-        <Association Name="FK_Question_FlashCard">
-          <End Role="FlashCard" Type="Self.FlashCard" Multiplicity="1" />
-          <End Role="Question" Type="Self.Question" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="FlashCard">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Question">
-              <PropertyRef Name="FlashCardId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_Question_Round">
           <End Role="Round" Type="Self.Round" Multiplicity="1" />
           <End Role="Question" Type="Self.Question" Multiplicity="*" />
@@ -95,15 +77,10 @@
           </ReferentialConstraint>
         </Association>
         <EntityContainer Name="FlashCardModelStoreContainer">
-          <EntitySet Name="FlashCard" EntityType="Self.FlashCard" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Question" EntityType="Self.Question" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Quiz" EntityType="Self.Quiz" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Round" EntityType="Self.Round" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Student" EntityType="Self.Student" Schema="dbo" store:Type="Tables" />
-          <AssociationSet Name="FK_Question_FlashCard" Association="Self.FK_Question_FlashCard">
-            <End Role="FlashCard" EntitySet="FlashCard" />
-            <End Role="Question" EntitySet="Question" />
-          </AssociationSet>
           <AssociationSet Name="FK_Question_Round" Association="Self.FK_Question_Round">
             <End Role="Round" EntitySet="Round" />
             <End Role="Question" EntitySet="Question" />
@@ -117,30 +94,21 @@
             <End Role="Round" EntitySet="Round" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="FlashCardModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
-        <EntityType Name="FlashCard">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Multiplier" Type="Int32" Nullable="false" />
-          <Property Name="Multiplicand" Type="Int32" Nullable="false" />
-          <NavigationProperty Name="Question" Relationship="Self.FK_Question_FlashCard" FromRole="FlashCard" ToRole="Question" />
-        </EntityType>
         <EntityType Name="Question">
           <Key>
             <PropertyRef Name="Id" />
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="Response" Type="Int32" Nullable="false" />
+          <Property Name="Product" Type="Int32" Nullable="false" />
           <Property Name="RoundId" Type="Int32" Nullable="false" />
-          <Property Name="FlashCardId" Type="Int32" Nullable="false" />
-          <NavigationProperty Name="FlashCard" Relationship="Self.FK_Question_FlashCard" FromRole="Question" ToRole="FlashCard" />
+          <Property Name="Multiplier" Type="Int32" Nullable="false" />
+          <Property Name="Multiplicand" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Round" Relationship="Self.FK_Question_Round" FromRole="Question" ToRole="Round" />
+          <Property Name="Response" Type="Int32" />
         </EntityType>
         <EntityType Name="Quiz">
           <Key>
@@ -148,7 +116,7 @@
           </Key>
           <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="Started" Type="DateTime" Nullable="false" Precision="7" />
-          <Property Name="Finished" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="Finished" Type="DateTime" Precision="7" />
           <Property Name="PersonId" Type="Int32" Nullable="false" />
           <NavigationProperty Name="Student" Relationship="Self.FK_Quiz_Person" FromRole="Quiz" ToRole="Student" />
           <NavigationProperty Name="Round" Relationship="Self.FK_Round_Quiz" FromRole="Quiz" ToRole="Round" />
@@ -171,18 +139,6 @@
           <Property Name="Name" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
           <NavigationProperty Name="Quiz" Relationship="Self.FK_Quiz_Person" FromRole="Student" ToRole="Quiz" />
         </EntityType>
-        <Association Name="FK_Question_FlashCard">
-          <End Role="FlashCard" Type="Self.FlashCard" Multiplicity="1" />
-          <End Role="Question" Type="Self.Question" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="FlashCard">
-              <PropertyRef Name="Id" />
-            </Principal>
-            <Dependent Role="Question">
-              <PropertyRef Name="FlashCardId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <Association Name="FK_Question_Round">
           <End Role="Round" Type="Self.Round" Multiplicity="1" />
           <End Role="Question" Type="Self.Question" Multiplicity="*" />
@@ -220,15 +176,10 @@
           </ReferentialConstraint>
         </Association>
         <EntityContainer Name="FlashCardEntities" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="FlashCard" EntityType="Self.FlashCard" />
           <EntitySet Name="Question" EntityType="Self.Question" />
           <EntitySet Name="Quiz" EntityType="Self.Quiz" />
           <EntitySet Name="Round" EntityType="Self.Round" />
           <EntitySet Name="Student" EntityType="Self.Student" />
-          <AssociationSet Name="FK_Question_FlashCard" Association="Self.FK_Question_FlashCard">
-            <End Role="FlashCard" EntitySet="FlashCard" />
-            <End Role="Question" EntitySet="Question" />
-          </AssociationSet>
           <AssociationSet Name="FK_Question_Round" Association="Self.FK_Question_Round">
             <End Role="Round" EntitySet="Round" />
             <End Role="Question" EntitySet="Question" />
@@ -248,22 +199,15 @@
     <edmx:Mappings>
       <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
         <EntityContainerMapping StorageEntityContainer="FlashCardModelStoreContainer" CdmEntityContainer="FlashCardEntities">
-          <EntitySetMapping Name="FlashCard">
-            <EntityTypeMapping TypeName="FlashCardModel.FlashCard">
-              <MappingFragment StoreEntitySet="FlashCard">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="Multiplier" ColumnName="Multiplier" />
-                <ScalarProperty Name="Multiplicand" ColumnName="Multiplicand" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="Question">
             <EntityTypeMapping TypeName="FlashCardModel.Question">
               <MappingFragment StoreEntitySet="Question">
-                <ScalarProperty Name="Id" ColumnName="Id" />
                 <ScalarProperty Name="Response" ColumnName="Response" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+                <ScalarProperty Name="Product" ColumnName="Product" />
                 <ScalarProperty Name="RoundId" ColumnName="RoundId" />
-                <ScalarProperty Name="FlashCardId" ColumnName="FlashCardId" />
+                <ScalarProperty Name="Multiplier" ColumnName="Multiplier" />
+                <ScalarProperty Name="Multiplicand" ColumnName="Multiplicand" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

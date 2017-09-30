@@ -22,7 +22,7 @@ namespace HexMultiplicationFlashCards.DAL
     
         public int Id { get; set; }
         public System.DateTime Started { get; set; }
-        public System.DateTime Finished { get; set; }
+        public Nullable<System.DateTime> Finished { get; set; }
         public int PersonId { get; set; }
     
         public virtual Student Student { get; set; }

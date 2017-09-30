@@ -21,15 +21,35 @@ namespace HexMultiplicationFlashCards
             //display intro
             FlashCardDeck.ShowIntroduction();
 
+            //Students/Create
+            int studentId = NewStudent();
+
             //Quizzes/Create
-            int quizId = NewQuiz();
+            int quizId = NewQuiz(studentId);
+
+
+            int roundNumber = 1;
 
             //Rounds/Create?qid=5
-            int roundId = NewRound(quizId, 1);
-            IEnumerable<FlashCard> cards = GetCards();
-            AddCards(cards);
-            AddQuestions(roundId, cards);
+            int roundId = NewRound(quizId, roundNumber);
+            IEnumerable<FlashCard> cards = NewCards();
+            NewQuestions(roundId, cards);
 
+            while (true)
+            {
+                roundNumber++;
+
+                IEnumerable<FlashCard> flashCards = GetCards(roundId);
+                foreach (var fc in flashCards)
+                {
+                    Console.WriteLine($"{fc.Multiplicand} X {fc.Multiplier} ?");
+                    fc.Response = int.Parse(Console.ReadLine());
+                }
+                SaveQuestions(flashCards);
+
+                //if (flashCards.Any)
+                
+            } 
 
 
 
@@ -64,26 +84,32 @@ namespace HexMultiplicationFlashCards
         }
 
         #region Data Repository
-        private static void AddQuestions(int roundId, IEnumerable<FlashCard> flashCards)
+
+        //CREATE
+        private static int NewStudent()
         {
             using (var db = new DAL.FlashCardEntities())
             {
-                var round = db.Round.Single(r => r.Id == roundId);
-                IList<DAL.FlashCard> dbFlashCards = new List<DAL.FlashCard>();
-
-                //PERFECTION: do this is a LINQ projection syntax (avoids having to use a list)
-                foreach (var flashCard in flashCards)
-                {
-                    dbFlashCards.Add(db.FlashCard
-                        .Single(fc => fc.Multiplicand == flashCard.multiplicand && fc.Multiplier == flashCard.multiplier));
-                }
-
-                foreach (var flashCard in dbFlashCards)
-                {
-                    var question = new DAL.Question() { Round = round, FlashCard = flashCard };
-                    db.Question.Add(question);
-                }
+                //TODO: actually select student
+                //PERFECTION: take these out of the using?
+                var s = new DAL.Student { Name = "Vince" };
+                db.Student.Add(s);
                 db.SaveChanges();
+                return s.Id;
+            }
+        }
+        private static int NewQuiz(int studentId)
+        {
+            using (var db = new DAL.FlashCardEntities())
+            {
+                //PERFECTION: take these out of the using?
+                var student = db.Student.Single(s => s.Id == studentId);
+                var q = new DAL.Quiz { Started = DateTime.Now };
+                student.Quiz.Add(q);
+
+                db.SaveChanges();
+
+                return q.Id;
             }
         }
         private static int NewRound(int quizId, int roundNum)
@@ -97,44 +123,59 @@ namespace HexMultiplicationFlashCards
                 return round.Id;
             }
         }
-        private static int NewQuiz()
-        {
-            //add student, quiz, and round
-            using (var db = new DAL.FlashCardEntities())
-            {
-                //TODO: actually select student
-                //PERFECTION: take these out of the using?
-                var s = new DAL.Student { Name = "Vince" };
-                var q = new DAL.Quiz { Started = DateTime.Now };
-                s.Quiz.Add(q);
-
-                db.Student.Add(s);
-                db.SaveChanges();
-
-                return q.Id;
-            }
-        }
-        private static void AddCards(IEnumerable<FlashCard> cards)
+        private static void NewQuestions(int roundId, IEnumerable<FlashCard> flashCards)
         {
             using (var db = new DAL.FlashCardEntities())
             {
-                IList<DAL.FlashCard> dbFlashCards = new List<DAL.FlashCard>();
-                foreach (var flashCard in cards)
+                var round = db.Round.Single(r => r.Id == roundId);
+                IList<DAL.Question> questions = new List<DAL.Question>();
+
+                foreach (var fc in flashCards)
                 {
-                    //PERFECTION: handle concurrency if two users are adding the same cards at the same time
-                    if (!db.FlashCard
-                        .Any(fc => fc.Multiplicand == flashCard.multiplicand && fc.Multiplier == flashCard.multiplier))
-                    {
-                        dbFlashCards.Add(Mapper.Map<FlashCard, DAL.FlashCard>(flashCard));
-                    }
+                    var question = Mapper.Map<FlashCard, DAL.Question>(fc);
+                    question.Round = round;
+                    db.Question.Add(question);
                 }
-                db.FlashCard.AddRange(dbFlashCards);
                 db.SaveChanges();
             }
         }
+
+        //READ
+        public static IEnumerable<FlashCard> GetCards(int roundId)
+        {
+            using (var db = new DAL.FlashCardEntities())
+            {
+                IList<FlashCard> flashCards = new List<FlashCard>();
+                var round = db.Round.Single(r => r.Id == roundId);
+                foreach (var q in round.Question)
+                {
+                    flashCards.Add(Mapper.Map<DAL.Question, FlashCard>(q));
+                }
+                return flashCards;
+            }
+        }
+       
+
+        //UPDATE
+        private static void SaveQuestions(IEnumerable<FlashCard> flashCards)
+        {
+            using (var db = new DAL.FlashCardEntities())
+            {
+                //PERFECTION: only modify the "response" field
+                //by querying from the DB by ID
+                var questions = flashCards.Select(fc => Mapper.Map<FlashCard, DAL.Question>(fc));
+                foreach (var q in questions)
+                {
+                    db.Entry(q).State = System.Data.Entity.EntityState.Modified;
+                }
+                db.SaveChanges();
+            }
+        }
+
+
         #endregion
         #region Utility
-        private static IEnumerable<FlashCard> GetCards()
+        private static IEnumerable<FlashCard> NewCards()
         {
             const int defaultMinValue = 4;  //arbitrary choice
             const int defaultMaxValue = 5;  //arbitrary choice
