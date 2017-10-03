@@ -1,5 +1,5 @@
 ﻿
-namespace HexMultiplicationFlashCards
+namespace HexMultiplicationFlashCards.ViewModels
 {
     class FlashCard
     {

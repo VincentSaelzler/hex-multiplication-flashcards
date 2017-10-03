@@ -1,180 +1,74 @@
-﻿using AutoMapper;
+﻿using HexMultiplicationFlashCards.Repositories;
+using HexMultiplicationFlashCards.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
+//TODO: Put in README: big lesson learned - do not use a completely different pattern for an initial program draft
+//using a console application for simplicity then transitioning to web is fine, but using .NET stacks versus actual
+//DB objects forced a re-write of everything.
+
+//TODO: put in README: decided not to change name of round table (despite being a TSQL keyword)
+//because it was the only word that really made logical sense as that object type
 namespace HexMultiplicationFlashCards
 {
     class Program
-    //TODO: Put in README: big lesson learned - do not use a completely different pattern for an initial program draft
-    //using a console application for simplicity then transitioning to web is fine, but using .NET stacks versus actual
-    //DB objects forced a re-write of everything.
-
-    //TODO: change name of round table because it is a TSQL keyword
     {
-        private static string resp { get; set; }
-
         static void Main(string[] args)
         {
             AutoMapperConfig.Initialize();
 
             //display intro
-            FlashCardDeck.ShowIntroduction();
+            ShowIntroduction();
 
             //Students/Create
-            int studentId = NewStudent();
+            int studentId = FlashCardRepo.NewStudent();
 
             //Quizzes/Create
-            int quizId = NewQuiz(studentId);
+            int quizId = FlashCardRepo.NewQuiz(studentId);
 
-
-            int roundNumber = 1;
-
-            //Rounds/Create?qid=5
-            int roundId = NewRound(quizId, roundNumber);
             IEnumerable<FlashCard> cards = NewCards();
-            NewQuestions(roundId, cards);
+            CreateRound(quizId, cards);
 
-            while (true)
-            {
-                roundNumber++;
-
-                IEnumerable<FlashCard> flashCards = GetCards(roundId);
-                foreach (var fc in flashCards)
-                {
-                    Console.WriteLine($"{fc.Multiplicand} X {fc.Multiplier} ?");
-                    fc.Response = int.Parse(Console.ReadLine());
-                }
-                SaveQuestions(flashCards);
-
-                //if (flashCards.Any)
-                
-            } 
-
-
-
-
-
-            var haveWrong = true;
-
-            //per-round loop
-            //  //collect all answers
-            //  //check answers
-            //  //if 
-            while (haveWrong)
-            {
-                //do the quiz
-                //check if some are wrong
-
-            }
-
-            //add wrong
-
-
-
-
-
-            ////run procedures
-            //while (flashCardDeck.CardsAvailable)
-            //{
-            //    flashCardDeck.AskQuestions();
-            //    flashCardDeck.SummarizeResults();
-            //    flashCardDeck.MoveWrongToUnanswered();
-            //}
+            //Quizzes/5
+            Console.WriteLine($"Done! Overall {FlashCardRepo.NumQuizQuestions(quizId)} Attempts, {FlashCardRepo.NumQuizQuestionsCorrect(quizId)} Correct, and {FlashCardRepo.NumQuizQuestionsWrong(quizId)} Wrong.");
+            Console.ReadLine();
         }
-
-        #region Data Repository
-
-        //CREATE
-        private static int NewStudent()
+        //Rounds/Edit/4
+        public static void ActionEditRound(int roundId)
         {
-            using (var db = new DAL.FlashCardEntities())
+            //get info
+            IEnumerable<FlashCard> flashCards = FlashCardRepo.GetCards(roundId);
+            int roundNumber = FlashCardRepo.GetCurrentRoundNum(roundId);
+
+            //prompt
+            foreach (var fc in flashCards)
             {
-                //TODO: actually select student
-                //PERFECTION: take these out of the using?
-                var s = new DAL.Student { Name = "Vince" };
-                db.Student.Add(s);
-                db.SaveChanges();
-                return s.Id;
+                Console.WriteLine($"{fc.Multiplicand} X {fc.Multiplier} ?");
+                fc.Response = int.Parse(Console.ReadLine());
+            }
+
+            //save (this would actually be a POST to //Rounds/Edit/4)
+            FlashCardRepo.SaveQuestions(flashCards);
+            Console.WriteLine($"Round {roundNumber} Complete. {flashCards.Where(fc => fc.Response == fc.Product).Count()} Correct, {flashCards.Where(fc => fc.Response != fc.Product).Count()} Wrong.");
+
+            //generate a new round if necessary
+            if (flashCards.Any(fc => fc.Response != fc.Product))
+            {
+                flashCards = flashCards.Where(fc => fc.Response != fc.Product);
+                CreateRound(FlashCardRepo.GetQuizId(roundId), flashCards);
             }
         }
-        private static int NewQuiz(int studentId)
+        private static void CreateRound(int quizId, IEnumerable<FlashCard> cards)
         {
-            using (var db = new DAL.FlashCardEntities())
-            {
-                //PERFECTION: take these out of the using?
-                var student = db.Student.Single(s => s.Id == studentId);
-                var q = new DAL.Quiz { Started = DateTime.Now };
-                student.Quiz.Add(q);
+            //create new round and add questions
+            int roundNumber = FlashCardRepo.GetMaxRoundNum(quizId) + 1; //returns a default int value of 0 when no rounds exist for the quiz yet
+            int roundId = FlashCardRepo.NewRound(quizId, roundNumber);
+            FlashCardRepo.NewQuestions(roundId, cards);
 
-                db.SaveChanges();
-
-                return q.Id;
-            }
+            //call the edit page
+            ActionEditRound(roundId);
         }
-        private static int NewRound(int quizId, int roundNum)
-        {
-            using (var db = new DAL.FlashCardEntities())
-            {
-                var quiz = db.Quiz.Single(q => q.Id == quizId);
-                var round = new DAL.Round() { Num = roundNum };
-                quiz.Round.Add(round);
-                db.SaveChanges();
-                return round.Id;
-            }
-        }
-        private static void NewQuestions(int roundId, IEnumerable<FlashCard> flashCards)
-        {
-            using (var db = new DAL.FlashCardEntities())
-            {
-                var round = db.Round.Single(r => r.Id == roundId);
-                IList<DAL.Question> questions = new List<DAL.Question>();
-
-                foreach (var fc in flashCards)
-                {
-                    var question = Mapper.Map<FlashCard, DAL.Question>(fc);
-                    question.Round = round;
-                    db.Question.Add(question);
-                }
-                db.SaveChanges();
-            }
-        }
-
-        //READ
-        public static IEnumerable<FlashCard> GetCards(int roundId)
-        {
-            using (var db = new DAL.FlashCardEntities())
-            {
-                IList<FlashCard> flashCards = new List<FlashCard>();
-                var round = db.Round.Single(r => r.Id == roundId);
-                foreach (var q in round.Question)
-                {
-                    flashCards.Add(Mapper.Map<DAL.Question, FlashCard>(q));
-                }
-                return flashCards;
-            }
-        }
-       
-
-        //UPDATE
-        private static void SaveQuestions(IEnumerable<FlashCard> flashCards)
-        {
-            using (var db = new DAL.FlashCardEntities())
-            {
-                //PERFECTION: only modify the "response" field
-                //by querying from the DB by ID
-                var questions = flashCards.Select(fc => Mapper.Map<FlashCard, DAL.Question>(fc));
-                foreach (var q in questions)
-                {
-                    db.Entry(q).State = System.Data.Entity.EntityState.Modified;
-                }
-                db.SaveChanges();
-            }
-        }
-
-
-        #endregion
-        #region Utility
         private static IEnumerable<FlashCard> NewCards()
         {
             const int defaultMinValue = 4;  //arbitrary choice
@@ -183,16 +77,16 @@ namespace HexMultiplicationFlashCards
             //get maximum factors
             Console.WriteLine();
             Console.WriteLine("Choose the Minimum Multiplier");
-            int minMultiplier = FlashCardDeck.ParseIntValue(defaultMinValue);
+            int minMultiplier = ParseIntValue(defaultMinValue);
             Console.WriteLine();
             Console.WriteLine("Choose the Minimum Multiplicand");
-            int minMultiplicand = FlashCardDeck.ParseIntValue(defaultMinValue);
+            int minMultiplicand = ParseIntValue(defaultMinValue);
             Console.WriteLine();
             Console.WriteLine("Choose the Max Multiplier");
-            int maxMultiplier = FlashCardDeck.ParseIntValue(defaultMaxValue);
+            int maxMultiplier = ParseIntValue(defaultMaxValue);
             Console.WriteLine();
             Console.WriteLine("Choose the Max Multiplicand");
-            int maxMultiplicand = FlashCardDeck.ParseIntValue(defaultMaxValue);
+            int maxMultiplicand = ParseIntValue(defaultMaxValue);
 
             //populate card list
             IList<FlashCard> cards = new List<FlashCard>();
@@ -206,6 +100,59 @@ namespace HexMultiplicationFlashCards
 
             return cards;
         }
-        #endregion
+        public static void ShowIntroduction()
+        {
+            //intro text
+            Console.WriteLine("DIRECTIONS");
+            Console.WriteLine("This program repeatedly asks multication problems.");
+            Console.WriteLine($"Type your answer in hex format, and then push 'Enter'.");
+        }
+        public static int ParseIntValue(int defaultValue) //TODO: move this out of this class
+        {
+            const string hexFormat = "X";
+            
+            //containers
+            int value;
+            bool valueSelected = false;
+
+            do
+            {
+                //container
+                string resp;
+
+                //prompt
+                Console.WriteLine($"Push 'Enter' for default value of '{defaultValue.ToString(hexFormat)}'");
+
+                //gather response
+                resp = Console.ReadLine();
+
+                valueSelected = false;
+
+                if (resp == string.Empty)
+                {
+                    //use default value
+                    valueSelected = true;
+                    Console.WriteLine($"Using default value {defaultValue.ToString(hexFormat)}");
+                    value = defaultValue;
+                }
+                else
+                {
+                    //parse entered response
+                    if (int.TryParse(resp, System.Globalization.NumberStyles.HexNumber, null, out value))
+                    {
+                        //use parsed response
+                        valueSelected = true;
+                        Console.WriteLine($"Using entered value {value.ToString(hexFormat)}");
+                    }
+                    else
+                    {
+                        //display guidance
+                        Console.WriteLine($"Enter a number in a valid hex format");
+                    }
+                }
+            } while (valueSelected == false);
+
+            return value;
+        }
     }
 }

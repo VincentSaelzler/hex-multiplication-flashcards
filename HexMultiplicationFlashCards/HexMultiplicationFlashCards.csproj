@@ -74,6 +74,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>FlashCardModel.edmx</DependentUpon>
     </Compile>
+    <Compile Include="Repositories\FlashCardRepo.cs" />
     <Compile Include="DAL\Question.cs">
       <DependentUpon>FlashCardModel.tt</DependentUpon>
     </Compile>
@@ -86,8 +87,7 @@
     <Compile Include="DAL\Student.cs">
       <DependentUpon>FlashCardModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="FlashCard.cs" />
-    <Compile Include="FlashCardDeck.cs" />
+    <Compile Include="ViewModels\FlashCard.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
